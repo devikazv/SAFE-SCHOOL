@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Pengaduan & Lacak Laporan</title>
+  
+  <!-- Google Fonts & FontAwesome Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      
+      --status-pending: #f59e0b;
+      --status-process: #3b82f6;
+      --status-action: #8b5cf6;
+      --status-success: #10b981;
+      --status-danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; line-height: 1.5; }
+    .container { max-width: 650px; margin: 0 auto; }
+    .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border-color); }
+    .card h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+    p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px; }
+    
+    .form-group { margin-bottom: 12px; text-align: left; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+    .form-group input { width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; outline: none; }
+    .form-group input:focus { border-color: var(--primary); }
+
+    .btn { width: 100%; padding: 10px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.9rem; background-color: var(--primary); color: white; transition: 0.2s; }
+    .btn:hover { background-color: var(--primary-hover); }
+    .btn-secondary { background-color: transparent; color: var(--text-muted); border: 1px solid var(--border-color); width: auto; padding: 6px 14px; font-size: 0.85rem; }
+    .btn-secondary:hover { background-color: #f1f5f9; }
+
+    .report-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+    .report-item { padding: 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #fafafa; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+    .report-item:hover { border-color: var(--primary); background: #f0fdf4; }
+    .report-item-id { font-size: 0.8rem; font-weight: 700; color: var(--primary); }
+    .report-item-title { font-size: 0.95rem; font-weight: 600; color: var(--text-main); margin-top: 2px; }
+    .report-item-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; color: white; white-space: nowrap; }
+
+    /* Timeline Progress */
+    .timeline-container { position: relative; margin: 20px 0 10px 0; padding-left: 15px; }
+    .timeline-item { position: relative; padding-left: 25px; padding-bottom: 24px; }
+    .timeline-item:last-child { padding-bottom: 0; }
+    .timeline-item::before { content: ''; position: absolute; left: 6px; top: 8px; bottom: -16px; width: 2px; background-color: var(--border-color); }
+    .timeline-item:last-child::before { display: none; }
+    .timeline-icon { position: absolute; left: 0; top: 2px; width: 14px; height: 14px; border-radius: 50%; background-color: #cbd5e1; border: 3px solid white; box-shadow: 0 0 0 2px var(--border-color); }
+    .timeline-item.completed .timeline-icon { background-color: var(--status-success); box-shadow: 0 0 0 2px var(--status-success); }
+    .timeline-item.active .timeline-icon { background-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+    .timeline-content { background: #f8fafc; border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border-color); }
+    .timeline-status-header { font-weight: 600; font-size: 0.9rem; margin-bottom: 2px; display: flex; justify-content: space-between; align-items: center; }
+    .timeline-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
+    .timeline-note { font-size: 0.85rem; color: #334155; margin-top: 4px; }
+
+    .error-msg { color: var(--status-danger); font-size: 0.85rem; margin-top: 10px; display: none; text-align: center; }
+    .loading { text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 20px; display: none; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- STEP 1: FORM LOGIN EMAIL -->
+    <div class="card" id="loginSection">
+      <h2><i class="fa-solid fa-envelope"></i> Cek Status Laporan</h2>
+      <p>Masukkan Email yang kamu daftarkan di Tally Form untuk melihat daftar laporanmu.</p>
+      
+      <div class="form-group">
+        <label for="inputEmail">Email Pelapor</label>
+        <input type="email" id="inputEmail" placeholder="contoh: siswa@sekolah.sch.id">
+      </div>
+
+      <button class="btn" onclick="fetchUserReports()"><i class="fa-solid fa-right-to-bracket"></i> Masuk & Lihat Laporan</button>
+      
+      <div id="loadingMsg" class="loading"><i class="fa-solid fa-spinner fa-spin"></i> Sedang mengambil data dari database...</div>
+      <div id="errorMsg" class="error-msg"></div>
+    </div>
+
+    <!-- STEP 2: DAFTAR LAPORAN DARI EMAIL -->
+    <div class="card hidden" id="listSection">
+      <h2><i class="fa-solid fa-folder-open"></i> Daftar Laporan Saya</h2>
+      <p>Email: <b id="displayUserEmail" style="color: var(--text-main);"></b></p>
+      <div class="report-list" id="reportsContainer"></div>
+      <div style="margin-top: 18px; text-align: center;">
+        <button class="btn btn-secondary" onclick="logout()"><i class="fa-solid fa-arrow-left"></i> Ganti Email</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: DETAIL TIMELINE LAPORAN -->
+    <div class="card hidden" id="detailSection">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--border-color);">
+        <div>
+          <span class="report-item-id" id="detailReportId"></span>
+          <h2 id="detailReportTitle" style="font-size: 1.1rem; color: var(--text-main); margin-top: 2px;"></h2>
+          <p style="font-size: 0.8rem; margin: 0;">Kategori: <span id="detailCategory" style="font-weight: 600;"></span></p>
+        </div>
+        <span class="badge" id="detailStatusBadge">Diproses</span>
+      </div>
+
+      <h3 style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 8px;"><i class="fa-solid fa-timeline"></i> Progress & Catatan BK/Guru</h3>
+      <div class="timeline-container" id="timelineList"></div>
+
+      <div style="margin-top: 18px; text-align: center;">
+        <button class="btn btn-secondary" onclick="backToList()"><i class="fa-solid fa-chevron-left"></i> Kembali ke Daftar</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // URL Web App Google Apps Script kamu
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbweO9Wi1Mi7Y-DMdMxkcP5YoJ8BTIW8KXHeFzW70xmBEl5pvHPCMZgAmBzNF-vTUKt5Xg/exec";
+    
+    let fetchedReports = [];
+
+    async function fetchUserReports() {
+      const emailInput = document.getElementById("inputEmail").value.trim().toLowerCase();
+      const errorMsg = document.getElementById("errorMsg");
+      const loadingMsg = document.getElementById("loadingMsg");
+
+      if (!emailInput) {
+        errorMsg.innerText = "Harap masukkan alamat email terlebih dahulu!";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      errorMsg.style.display = "none";
+      loadingMsg.style.display = "block";
+
+      try {
+        const response = await fetch(`${WEB_APP_URL}?email=${encodeURIComponent(emailInput)}`);
+        const data = await response.json();
+        
+        loadingMsg.style.display = "none";
+
+        if (!data || data.length === 0) {
+          errorMsg.innerText = "Tidak ada laporan yang ditemukan untuk email ini.";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        fetchedReports = data;
+        document.getElementById("displayUserEmail").innerText = emailInput;
+        renderReportList(fetchedReports);
+
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("listSection").classList.remove("hidden");
+
+      } catch (err) {
+        loadingMsg.style.display = "none";
+        errorMsg.innerText = "Gagal terhubung ke database. Pastikan koneksi aman atau coba lagi nanti.";
+        errorMsg.style.display = "block";
+      }
+    }
+
+    function renderReportList(reports) {
+      const container = document.getElementById("reportsContainer");
+      container.innerHTML = "";
+
+      reports.forEach((report, index) => {
+        const badgeColor = getStatusColor(report.currentStatus);
+        const itemHTML = `
+          <div class="report-item" onclick="showReportDetail(${index})">
+            <div>
+              <span class="report-item-id">${report.id}</span>
+              <div class="report-item-title">${report.title}</div>
+              <div class="report-item-date"><i class="fa-regular fa-calendar"></i> ${report.created_at}</div>
+            </div>
+            <div><span class="badge" style="background-color: ${badgeColor}">${report.currentStatus}</span></div>
+          </div>
+        `;
+        container.innerHTML += itemHTML;
+      });
+    }
+
+    function showReportDetail(index) {
+      const report = fetchedReports[index];
+      
+      document.getElementById("detailReportId").innerText = report.id;
+      document.getElementById("detailReportTitle").innerText = report.title;
+      document.getElementById("detailCategory").innerText = report.category;
+
+      const badge = document.getElementById("detailStatusBadge");
+      badge.innerText = report.currentStatus;
+      badge.style.backgroundColor = getStatusColor(report.currentStatus);
+
+      // Logika Timeline Otomatis Berdasarkan Status Terkini
+      const statuses = ["Terkirim", "Diproses", "Tindak Lanjut", "Selesai"];
+      const currentIdx = statuses.indexOf(report.currentStatus);
+
+      const timelineContainer = document.getElementById("timelineList");
+      timelineContainer.innerHTML = "";
+
+      statuses.forEach((st, idx) => {
+        let isCompleted = idx <= currentIdx;
+        let isActive = st === report.currentStatus;
+        let stateClass = isCompleted ? "completed" : "";
+        if (isActive) stateClass = "active";
+
+        let noteText = (st === report.currentStatus) ? report.note : (isCompleted ? "Tahap ini telah selesai." : "Menunggu tahap berikutnya.");
+
+        const htmlItem = `
+          <div class="timeline-item ${stateClass}">
+            <div class="timeline-icon"></div>
+            <div class="timeline-content">
+              <div class="timeline-status-header">
+                <span>${st}</span>
+                <span class="timeline-time">${isCompleted ? report.created_at : "-"}</span>
+              </div>
+              <div class="timeline-note">${noteText}</div>
+            </div>
+          </div>
+        `;
+        timelineContainer.innerHTML += htmlItem;
+      });
+
+      document.getElementById("listSection").classList.add("hidden");
+      document.getElementById("detailSection").classList.remove("hidden");
+    }
+
+    function backToList() {
+      document.getElementById("detailSection").classList.add("hidden");
+      document.getElementById("listSection").classList.remove("hidden");
+    }
+
+    function logout() {
+      document.getElementById("listSection").classList.add("hidden");
+      document.getElementById("loginSection").classList.remove("hidden");
+      document.getElementById("inputEmail").value = "";
+    }
+
+    function getStatusColor(status) {
+      switch(status) {
+        case "Terkirim": return "var(--status-pending)";
+        case "Diproses": return "var(--status-process)";
+        case "Tindak Lanjut": return "var(--status-action)";
+        case "Selesai": return "var(--status-success)";
+        case "Ditolak": return "var(--status-danger)";
+        default: return "var(--text-muted)";
+      }
+    }
+  </script>
+</body>
+</html>
