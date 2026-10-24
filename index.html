@@ -5,117 +5,362 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portal Pengaduan & Lacak Laporan</title>
   
-  <!-- Google Fonts & FontAwesome Icons -->
+  <!-- Google Fonts (Inter) & FontAwesome Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
   <style>
     :root {
-      --primary: #4f46e5;
-      --primary-hover: #4338ca;
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --border-color: #e2e8f0;
+      /* Clean Blue & White Theme Palette */
+      --primary: #2563eb;          /* Royal Blue */
+      --primary-hover: #1d4ed8;    /* Darker Blue */
+      --primary-soft: #eff6ff;     /* Very Light Soft Blue */
+      --bg-color: #f8fafc;         /* Crisp Off-White */
+      --card-bg: #ffffff;         /* Pure White */
+      --text-main: #0f172a;        /* Deep Navy/Slate Text */
+      --text-muted: #64748b;      /* Muted Slate Gray */
+      --border-color: #e2e8f0;    /* Soft Gray Border */
       
-      --status-pending: #f59e0b;
-      --status-process: #3b82f6;
-      --status-action: #8b5cf6;
-      --status-success: #10b981;
-      --status-danger: #ef4444;
+      /* Status Badge Colors */
+      --status-pending: #f59e0b;   /* Amber */
+      --status-process: #3b82f6;   /* Blue */
+      --status-action: #8b5cf6;    /* Purple */
+      --status-success: #10b981;   /* Emerald Green */
+      --status-danger: #ef4444;    /* Red */
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    body { background-color: var(--bg-color); color: var(--text-main); padding: 16px; line-height: 1.5; }
-    .container { max-width: 650px; margin: 0 auto; }
-    .card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border-color); }
-    .card h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
-    p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 14px; }
-    
-    .form-group { margin-bottom: 12px; text-align: left; }
-    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
-    .form-group input { width: 100%; padding: 10px 14px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 0.95rem; outline: none; }
-    .form-group input:focus { border-color: var(--primary); }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
 
-    .btn { width: 100%; padding: 10px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.9rem; background-color: var(--primary); color: white; transition: 0.2s; }
-    .btn:hover { background-color: var(--primary-hover); }
-    .btn-secondary { background-color: transparent; color: var(--text-muted); border: 1px solid var(--border-color); width: auto; padding: 6px 14px; font-size: 0.85rem; }
-    .btn-secondary:hover { background-color: #f1f5f9; }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 24px 16px;
+      line-height: 1.5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-    .report-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
-    .report-item { padding: 14px; border: 1px solid var(--border-color); border-radius: 8px; background: #fafafa; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-    .report-item:hover { border-color: var(--primary); background: #f0fdf4; }
-    .report-item-id { font-size: 0.8rem; font-weight: 700; color: var(--primary); }
-    .report-item-title { font-size: 0.95rem; font-weight: 600; color: var(--text-main); margin-top: 2px; }
-    .report-item-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+    .container {
+      width: 100%;
+      max-width: 580px;
+      margin: 0 auto;
+    }
 
-    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; color: white; white-space: nowrap; }
+    /* Clean Card Component */
+    .card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 28px 24px;
+      box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.02);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+    }
 
-    /* Timeline Progress */
-    .timeline-container { position: relative; margin: 20px 0 10px 0; padding-left: 15px; }
-    .timeline-item { position: relative; padding-left: 25px; padding-bottom: 24px; }
-    .timeline-item:last-child { padding-bottom: 0; }
-    .timeline-item::before { content: ''; position: absolute; left: 6px; top: 8px; bottom: -16px; width: 2px; background-color: var(--border-color); }
-    .timeline-item:last-child::before { display: none; }
-    .timeline-icon { position: absolute; left: 0; top: 2px; width: 14px; height: 14px; border-radius: 50%; background-color: #cbd5e1; border: 3px solid white; box-shadow: 0 0 0 2px var(--border-color); }
-    .timeline-item.completed .timeline-icon { background-color: var(--status-success); box-shadow: 0 0 0 2px var(--status-success); }
-    .timeline-item.active .timeline-icon { background-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
-    .timeline-content { background: #f8fafc; border-radius: 8px; padding: 10px 14px; border: 1px solid var(--border-color); }
-    .timeline-status-header { font-weight: 600; font-size: 0.9rem; margin-bottom: 2px; display: flex; justify-content: space-between; align-items: center; }
-    .timeline-time { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
-    .timeline-note { font-size: 0.85rem; color: #334155; margin-top: 4px; }
+    .card h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-    .error-msg { color: var(--status-danger); font-size: 0.85rem; margin-top: 10px; display: none; text-align: center; }
-    .loading { text-align: center; color: var(--text-muted); font-size: 0.9rem; padding: 20px; display: none; }
-    .hidden { display: none; }
+    .card h2 i {
+      color: var(--primary);
+    }
+
+    p.subtitle {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    /* Form Input Controls */
+    .form-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text-main);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      outline: none;
+      background-color: #f8fafc;
+      transition: all 0.2s ease;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+      background-color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    /* Buttons */
+    .btn {
+      width: 100%;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.925rem;
+      background-color: var(--primary);
+      color: white;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background-color: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      box-shadow: none;
+      width: auto;
+      padding: 8px 16px;
+      font-size: 0.85rem;
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--primary-soft);
+      color: var(--primary);
+      border-color: #bfdbfe;
+      box-shadow: none;
+      transform: none;
+    }
+
+    /* Report List View */
+    .report-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .report-item {
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: #ffffff;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+    }
+
+    .report-item:hover {
+      border-color: var(--primary);
+      background-color: var(--primary-soft);
+      transform: translateY(-2px);
+    }
+
+    .report-item-id {
+      font-size: 0.775rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: 0.5px;
+    }
+
+    .report-item-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-top: 2px;
+    }
+
+    .report-item-date {
+      font-size: 0.775rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .badge {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: white;
+      white-space: nowrap;
+    }
+
+    /* Clean Timeline Layout */
+    .timeline-container {
+      position: relative;
+      margin: 24px 0 12px 0;
+      padding-left: 12px;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-left: 28px;
+      padding-bottom: 24px;
+    }
+
+    .timeline-item:last-child {
+      padding-bottom: 0;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 6px;
+      top: 8px;
+      bottom: -16px;
+      width: 2px;
+      background-color: var(--border-color);
+    }
+
+    .timeline-item:last-child::before {
+      display: none;
+    }
+
+    .timeline-icon {
+      position: absolute;
+      left: 0;
+      top: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background-color: #cbd5e1;
+      border: 3px solid white;
+      box-shadow: 0 0 0 2px var(--border-color);
+    }
+
+    .timeline-item.completed .timeline-icon {
+      background-color: var(--status-success);
+      box-shadow: 0 0 0 2px var(--status-success);
+    }
+
+    .timeline-item.active .timeline-icon {
+      background-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+
+    .timeline-content {
+      background: #f8fafc;
+      border-radius: 10px;
+      padding: 12px 16px;
+      border: 1px solid var(--border-color);
+    }
+
+    .timeline-status-header {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .timeline-time {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    .timeline-note {
+      font-size: 0.85rem;
+      color: #334155;
+    }
+
+    .error-msg {
+      color: var(--status-danger);
+      font-size: 0.85rem;
+      margin-top: 12px;
+      display: none;
+      text-align: center;
+    }
+
+    .loading {
+      text-align: center;
+      color: var(--primary);
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 16px;
+      display: none;
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
     
-    <!-- STEP 1: FORM LOGIN EMAIL -->
+    <!-- STEP 1: LOGIN EMAIL -->
     <div class="card" id="loginSection">
-      <h2><i class="fa-solid fa-envelope"></i> Cek Status Laporan</h2>
-      <p>Masukkan Email yang kamu daftarkan di Tally Form untuk melihat daftar laporanmu.</p>
+      <h2><i class="fa-solid fa-circle-check"></i> Lacak Status Laporan</h2>
+      <p class="subtitle">Masukkan Alamat Email yang kamu daftarkan saat mengisi Tally Form untuk memantau perkembangan laporanmu secara real-time.</p>
       
       <div class="form-group">
         <label for="inputEmail">Email Pelapor</label>
-        <input type="email" id="inputEmail" placeholder="contoh: siswa@sekolah.sch.id">
+        <input type="email" id="inputEmail" placeholder="nama@sekolah.sch.id">
       </div>
 
-      <button class="btn" onclick="fetchUserReports()"><i class="fa-solid fa-right-to-bracket"></i> Masuk & Lihat Laporan</button>
+      <button class="btn" onclick="fetchUserReports()"><i class="fa-solid fa-magnifying-glass"></i> Cek Laporan Saya</button>
       
-      <div id="loadingMsg" class="loading"><i class="fa-solid fa-spinner fa-spin"></i> Sedang mengambil data dari database...</div>
+      <div id="loadingMsg" class="loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Menghubungkan ke database...</div>
       <div id="errorMsg" class="error-msg"></div>
     </div>
 
-    <!-- STEP 2: DAFTAR LAPORAN DARI EMAIL -->
+    <!-- STEP 2: DAFTAR LAPORAN -->
     <div class="card hidden" id="listSection">
-      <h2><i class="fa-solid fa-folder-open"></i> Daftar Laporan Saya</h2>
-      <p>Email: <b id="displayUserEmail" style="color: var(--text-main);"></b></p>
+      <h2><i class="fa-solid fa-folder-closed"></i> Laporan Terdaftar</h2>
+      <p class="subtitle">Pelapor: <b id="displayUserEmail" style="color: var(--primary);"></b></p>
+      
       <div class="report-list" id="reportsContainer"></div>
-      <div style="margin-top: 18px; text-align: center;">
+
+      <div style="margin-top: 24px; text-align: center;">
         <button class="btn btn-secondary" onclick="logout()"><i class="fa-solid fa-arrow-left"></i> Ganti Email</button>
       </div>
     </div>
 
-    <!-- STEP 3: DETAIL TIMELINE LAPORAN -->
+    <!-- STEP 3: DETAIL TIMELINE -->
     <div class="card hidden" id="detailSection">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed var(--border-color);">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px dashed var(--border-color);">
         <div>
           <span class="report-item-id" id="detailReportId"></span>
-          <h2 id="detailReportTitle" style="font-size: 1.1rem; color: var(--text-main); margin-top: 2px;"></h2>
-          <p style="font-size: 0.8rem; margin: 0;">Kategori: <span id="detailCategory" style="font-weight: 600;"></span></p>
+          <h2 id="detailReportTitle" style="font-size: 1.15rem; color: var(--text-main); margin-top: 2px;"></h2>
+          <p style="font-size: 0.8rem; margin: 0; color: var(--text-muted);">Kategori: <span id="detailCategory" style="font-weight: 600; color: var(--text-main);"></span></p>
         </div>
         <span class="badge" id="detailStatusBadge">Diproses</span>
       </div>
 
-      <h3 style="font-size: 0.9rem; color: var(--text-main); margin-bottom: 8px;"><i class="fa-solid fa-timeline"></i> Progress & Catatan BK/Guru</h3>
+      <h3 style="font-size: 0.9rem; color: var(--text-main); font-weight: 700; margin-bottom: 8px;"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Penanganan</h3>
       <div class="timeline-container" id="timelineList"></div>
 
-      <div style="margin-top: 18px; text-align: center;">
+      <div style="margin-top: 24px; text-align: center;">
         <button class="btn btn-secondary" onclick="backToList()"><i class="fa-solid fa-chevron-left"></i> Kembali ke Daftar</button>
       </div>
     </div>
@@ -149,7 +394,7 @@
         loadingMsg.style.display = "none";
 
         if (!data || data.length === 0) {
-          errorMsg.innerText = "Tidak ada laporan yang ditemukan untuk email ini.";
+          errorMsg.innerText = "Tidak ada laporan yang ditemukan untuk email ini. Pastikan email sama seperti saat mengisi form.";
           errorMsg.style.display = "block";
           return;
         }
@@ -163,7 +408,7 @@
 
       } catch (err) {
         loadingMsg.style.display = "none";
-        errorMsg.innerText = "Gagal terhubung ke database. Pastikan koneksi aman atau coba lagi nanti.";
+        errorMsg.innerText = "Gagal terhubung ke sistem. Coba beberapa saat lagi.";
         errorMsg.style.display = "block";
       }
     }
@@ -179,7 +424,7 @@
             <div>
               <span class="report-item-id">${report.id}</span>
               <div class="report-item-title">${report.title}</div>
-              <div class="report-item-date"><i class="fa-regular fa-calendar"></i> ${report.created_at}</div>
+              <div class="report-item-date"><i class="fa-regular fa-calendar-check"></i> ${report.created_at}</div>
             </div>
             <div><span class="badge" style="background-color: ${badgeColor}">${report.currentStatus}</span></div>
           </div>
@@ -199,7 +444,7 @@
       badge.innerText = report.currentStatus;
       badge.style.backgroundColor = getStatusColor(report.currentStatus);
 
-      // Logika Timeline Otomatis Berdasarkan Status Terkini
+      // Logika Timeline Progress
       const statuses = ["Terkirim", "Diproses", "Tindak Lanjut", "Selesai"];
       const currentIdx = statuses.indexOf(report.currentStatus);
 
@@ -212,7 +457,7 @@
         let stateClass = isCompleted ? "completed" : "";
         if (isActive) stateClass = "active";
 
-        let noteText = (st === report.currentStatus) ? report.note : (isCompleted ? "Tahap ini telah selesai." : "Menunggu tahap berikutnya.");
+        let noteText = (st === report.currentStatus) ? report.note : (isCompleted ? "Tahap ini telah selesai dilaksanakan." : "Menunggu tahap berikutnya.");
 
         const htmlItem = `
           <div class="timeline-item ${stateClass}">
