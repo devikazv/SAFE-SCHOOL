@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Guru & Admin - Panel Pengaduan</title>
+  
+  <!-- Google Fonts & FontAwesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      
+      --status-pending: #f59e0b;
+      --status-process: #3b82f6;
+      --status-action: #8b5cf6;
+      --status-success: #10b981;
+      --status-danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); padding: 24px 16px; line-height: 1.5; }
+    .container { max-width: 1050px; margin: 0 auto; }
+    
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+    .header h1 { font-size: 1.3rem; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+    .header h1 i { color: var(--primary); }
+
+    .card { background: var(--card-bg); border-radius: 16px; padding: 24px; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04); border: 1px solid var(--border-color); margin-bottom: 20px; }
+    
+    /* Form Login */
+    .login-box { max-width: 420px; margin: 60px auto; }
+    .form-group { margin-bottom: 16px; text-align: left; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.9rem; outline: none; background: #f8fafc; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+
+    .btn { width: 100%; padding: 12px 16px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.9rem; background: var(--primary); color: white; transition: 0.2s; }
+    .btn:hover { background: var(--primary-hover); }
+    .btn-small { width: auto; padding: 8px 14px; font-size: 0.8rem; border-radius: 8px; }
+    .btn-danger { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; }
+    .btn-danger:hover { background: #ef4444; color: white; }
+
+    /* Table Styles */
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem; }
+    th { background: #f1f5f9; padding: 12px; font-weight: 600; color: var(--text-muted); border-bottom: 1px solid var(--border-color); }
+    td { padding: 14px 12px; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+    tr:hover { background-color: var(--primary-soft); }
+
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; color: white; display: inline-block; white-space: nowrap; }
+
+    /* Modal Backdrop */
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+    .modal { background: #fff; border-radius: 16px; padding: 24px; width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+
+    .hidden { display: none !important; }
+    .loading { text-align: center; color: var(--primary); padding: 20px; font-weight: 500; }
+    .error-msg { color: var(--status-danger); font-size: 0.85rem; margin-top: 10px; text-align: center; display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- AUTH / FORM LOGIN -->
+    <div id="authSection" class="card login-box">
+      <h2 style="font-size: 1.25rem; margin-bottom: 6px; text-align: center;"><i class="fa-solid fa-user-shield" style="color: var(--primary);"></i> Login Guru & Admin</h2>
+      <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 20px;">Masukkan NIP Guru atau PIN Khusus Admin untuk masuk ke dashboard.</p>
+      
+      <div class="form-group">
+        <label for="inputCred">NIP Guru / PIN Admin</label>
+        <input type="password" id="inputCred" placeholder="Masukkan NIP atau PIN (4SADMIN)">
+      </div>
+
+      <button class="btn" onclick="checkAuth()"><i class="fa-solid fa-right-to-bracket"></i> Masuk Dashboard</button>
+      
+      <div id="authLoading" class="loading hidden"><i class="fa-solid fa-spinner fa-spin"></i> Memeriksa kredensial...</div>
+      <div id="authError" class="error-msg">NIP atau PIN tidak terdaftar!</div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboardSection" class="hidden">
+      
+      <div class="header">
+        <div>
+          <h1><i class="fa-solid fa-clipboard-check"></i> Panel Kelola Laporan Pengaduan</h1>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">Selamat datang, <b id="userDisplayName" style="color: var(--primary);"></b> (<span id="userRoleBadge"></span>)</p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-small" onclick="fetchAdminData()"><i class="fa-solid fa-rotate"></i> Refresh</button>
+          <button class="btn btn-small btn-danger" onclick="logout()"><i class="fa-solid fa-power-off"></i> Keluar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div id="loadingMsg" class="loading"><i class="fa-solid fa-spinner fa-spin"></i> Memuat daftar laporan dari Google Sheets...</div>
+        
+        <div class="table-responsive">
+          <table id="reportsTable" class="hidden">
+            <thead>
+              <tr>
+                <th>ID & Waktu</th>
+                <th>Pelapor & Lokasi</th>
+                <th>Kategori</th>
+                <th>Kronologi Laporan</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MODAL UPDATE STATUS -->
+    <div id="editModal" class="modal-backdrop hidden">
+      <div class="modal">
+        <h3 style="margin-bottom: 12px; font-size: 1.1rem; color: var(--text-main);"><i class="fa-solid fa-pen-to-square" style="color: var(--primary);"></i> Update Laporan <span id="modalReportId" style="color: var(--primary);"></span></h3>
+        
+        <input type="hidden" id="modalRowIndex">
+
+        <div class="form-group">
+          <label>Status Laporan Terbaru</label>
+          <select id="modalStatusSelect">
+            <option value="Terkirim">Terkirim (Menunggu Peninjauan)</option>
+            <option value="Diproses">Diproses (Sedang Diinvestigasi)</option>
+            <option value="Tindak Lanjut">Tindak Lanjut (Pemanggilan/Aksi)</option>
+            <option value="Selesai">Selesai (Kasus Ditutup)</option>
+            <option value="Ditolak">Ditolak / Laporan Tidak Valid</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Catatan / Feedback Guru (Dilihat oleh Siswa)</label>
+          <textarea id="modalNoteInput" rows="4" placeholder="Tulis perkembangan kasus atau instruksi untuk pelapor di sini..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+          <button class="btn btn-small" style="background: #94a3b8; color: white;" onclick="closeModal()">Batal</button>
+          <button class="btn btn-small" onclick="saveReportUpdate()"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbweO9Wi1Mi7Y-DMdMxkcP5YoJ8BTIW8KXHeFzW70xmBEl5pvHPCMZgAmBzNF-vTUKt5Xg/exec";
+    let allReports = [];
+
+    async function checkAuth() {
+      const cred = document.getElementById("inputCred").value.trim();
+      const authError = document.getElementById("authError");
+      const authLoading = document.getElementById("authLoading");
+
+      if (!cred) {
+        authError.innerText = "Harap masukkan NIP atau PIN!";
+        authError.style.display = "block";
+        return;
+      }
+
+      authError.style.display = "none";
+      authLoading.classList.remove("hidden");
+
+      try {
+        const response = await fetch(`${WEB_APP_URL}?action=login&credential=${encodeURIComponent(cred)}`);
+        const result = await response.json();
+
+        authLoading.classList.add("hidden");
+
+        if (result.success) {
+          document.getElementById("userDisplayName").innerText = result.name;
+          document.getElementById("userRoleBadge").innerText = result.role;
+
+          document.getElementById("authSection").classList.add("hidden");
+          document.getElementById("dashboardSection").classList.remove("hidden");
+          fetchAdminData();
+        } else {
+          authError.innerText = result.message || "NIP / PIN tidak valid!";
+          authError.style.display = "block";
+        }
+      } catch (err) {
+        authLoading.classList.add("hidden");
+        authError.innerText = "Gagal terhubung ke server login.";
+        authError.style.display = "block";
+      }
+    }
+
+    async function fetchAdminData() {
+      const loadingMsg = document.getElementById("loadingMsg");
+      const table = document.getElementById("reportsTable");
+      
+      loadingMsg.classList.remove("hidden");
+      table.classList.add("hidden");
+
+      try {
+        const response = await fetch(`${WEB_APP_URL}?admin=true`);
+        const data = await response.json();
+        
+        allReports = data;
+        renderTable(allReports);
+
+        loadingMsg.classList.add("hidden");
+        table.classList.remove("hidden");
+      } catch (err) {
+        alert("Gagal mengambil data laporan.");
+      }
+    }
+
+    function renderTable(reports) {
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      reports.forEach((rep, idx) => {
+        const badgeColor = getStatusColor(rep.currentStatus);
+        const tr = `
+          <tr>
+            <td>
+              <strong style="color: var(--primary);">${rep.id}</strong><br>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">${rep.created_at}</span>
+            </td>
+            <td>
+              <b>${rep.email}</b><br>
+              <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> ${rep.location}</span>
+            </td>
+            <td><span class="badge" style="background: #e2e8f0; color: #334155;">${rep.category}</span></td>
+            <td style="max-width: 260px;">${rep.title}</td>
+            <td><span class="badge" style="background: ${badgeColor}">${rep.currentStatus}</span></td>
+            <td>
+              <button class="btn btn-small" onclick="openEditModal(${idx})"><i class="fa-solid fa-pen"></i> Update</button>
+            </td>
+          </tr>
+        `;
+        tbody.innerHTML += tr;
+      });
+    }
+
+    function openEditModal(index) {
+      const report = allReports[index];
+      document.getElementById("modalReportId").innerText = report.id;
+      document.getElementById("modalRowIndex").value = report.rowIndex;
+      document.getElementById("modalStatusSelect").value = report.currentStatus;
+      document.getElementById("modalNoteInput").value = report.note || "";
+      
+      document.getElementById("editModal").classList.remove("hidden");
+    }
+
+    function closeModal() {
+      document.getElementById("editModal").classList.add("hidden");
+    }
+
+    async function saveReportUpdate() {
+      const rowIndex = document.getElementById("modalRowIndex").value;
+      const status = document.getElementById("modalStatusSelect").value;
+      const note = document.getElementById("modalNoteInput").value;
+
+      closeModal();
+      document.getElementById("loadingMsg").classList.remove("hidden");
+      document.getElementById("reportsTable").classList.add("hidden");
+
+      try {
+        await fetch(WEB_APP_URL, {
+          method: "POST",
+          body: JSON.stringify({ rowIndex: parseInt(rowIndex), status: status, note: note })
+        });
+
+        alert("Berhasil memperbarui laporan!");
+        fetchAdminData();
+      } catch (err) {
+        alert("Gagal mengupdate laporan.");
+      }
+    }
+
+    function logout() {
+      document.getElementById("dashboardSection").classList.add("hidden");
+      document.getElementById("authSection").classList.remove("hidden");
+      document.getElementById("inputCred").value = "";
+    }
+
+    function getStatusColor(status) {
+      switch(status) {
+        case "Terkirim": return "var(--status-pending)";
+        case "Diproses": return "var(--status-process)";
+        case "Tindak Lanjut": return "var(--status-action)";
+        case "Selesai": return "var(--status-success)";
+        case "Ditolak": return "var(--status-danger)";
+        default: return "var(--text-muted)";
+      }
+    }
+  </script>
+</body>
+</html>
