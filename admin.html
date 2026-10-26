@@ -44,9 +44,11 @@
     .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: 10px; font-size: 0.9rem; outline: none; background: #f8fafc; }
     .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
 
-    .btn { width: 100%; padding: 12px 16px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.9rem; background: var(--primary); color: white; transition: 0.2s; }
+    .btn { width: 100%; padding: 12px 16px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; display: inline-flex; justify-content: center; align-items: center; gap: 8px; font-size: 0.9rem; background: var(--primary); color: white; transition: 0.2s; text-decoration: none; }
     .btn:hover { background: var(--primary-hover); }
     .btn-small { width: auto; padding: 8px 14px; font-size: 0.8rem; border-radius: 8px; }
+    .btn-secondary { background: #f1f5f9; color: var(--text-main); border: 1px solid var(--border-color); }
+    .btn-secondary:hover { background: #e2e8f0; }
     .btn-danger { background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; }
     .btn-danger:hover { background: #ef4444; color: white; }
 
@@ -60,8 +62,12 @@
     .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; color: white; display: inline-block; white-space: nowrap; }
 
     /* Modal Backdrop */
-    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: center; z-index: 1000; }
-    .modal { background: #fff; border-radius: 16px; padding: 24px; width: 100%; max-width: 500px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+    .modal-backdrop { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.4); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 16px; }
+    .modal { background: #fff; border-radius: 16px; padding: 24px; width: 100%; max-width: 520px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
+
+    .detail-info-box { background: #f8fafc; border-radius: 10px; padding: 12px 14px; border: 1px solid var(--border-color); margin-bottom: 16px; font-size: 0.85rem; }
+    .detail-info-box p { margin-bottom: 6px; }
+    .detail-info-box p:last-child { margin-bottom: 0; }
 
     .hidden { display: none !important; }
     .loading { text-align: center; color: var(--primary); padding: 20px; font-weight: 500; }
@@ -124,12 +130,19 @@
 
     </div>
 
-    <!-- MODAL UPDATE STATUS -->
+    <!-- MODAL UPDATE STATUS & DETAIL -->
     <div id="editModal" class="modal-backdrop hidden">
       <div class="modal">
-        <h3 style="margin-bottom: 12px; font-size: 1.1rem; color: var(--text-main);"><i class="fa-solid fa-pen-to-square" style="color: var(--primary);"></i> Update Laporan <span id="modalReportId" style="color: var(--primary);"></span></h3>
+        <h3 style="margin-bottom: 14px; font-size: 1.1rem; color: var(--text-main);"><i class="fa-solid fa-pen-to-square" style="color: var(--primary);"></i> Update Laporan <span id="modalReportId" style="color: var(--primary);"></span></h3>
         
         <input type="hidden" id="modalRowIndex">
+
+        <!-- Informasi Rincian Laporan -->
+        <div class="detail-info-box">
+          <p><strong>Pelapor:</strong> <span id="modalEmail" style="color: var(--primary); font-weight: 600;"></span></p>
+          <p><strong>Lokasi:</strong> <span id="modalLocation"></span></p>
+          <p><strong>Bukti Pendukung:</strong> <span id="modalProofContainer"></span></p>
+        </div>
 
         <div class="form-group">
           <label>Status Laporan Terbaru</label>
@@ -147,8 +160,8 @@
           <textarea id="modalNoteInput" rows="4" placeholder="Tulis perkembangan kasus atau instruksi untuk pelapor di sini..."></textarea>
         </div>
 
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button class="btn btn-small" style="background: #94a3b8; color: white;" onclick="closeModal()">Batal</button>
+        <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+          <button class="btn btn-small btn-secondary" onclick="closeModal()">Batal</button>
           <button class="btn btn-small" onclick="saveReportUpdate()"><i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan</button>
         </div>
       </div>
@@ -225,6 +238,12 @@
 
       reports.forEach((rep, idx) => {
         const badgeColor = getStatusColor(rep.currentStatus);
+        
+        // Pengecekan jika email berupa Anonim
+        const emailDisplay = rep.email.includes("Anonim") 
+          ? `<span style="color: #64748b; font-weight: 600;"><i class="fa-solid fa-user-ninja"></i> ${rep.email}</span>` 
+          : `<b>${rep.email}</b>`;
+
         const tr = `
           <tr>
             <td>
@@ -232,14 +251,14 @@
               <span style="font-size: 0.75rem; color: var(--text-muted);">${rep.created_at}</span>
             </td>
             <td>
-              <b>${rep.email}</b><br>
-              <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> ${rep.location}</span>
+              ${emailDisplay}<br>
+              <span style="font-size: 0.8rem; color: var(--text-muted);"><i class="fa-solid fa-location-dot"></i> ${rep.location || "-"}</span>
             </td>
-            <td><span class="badge" style="background: #e2e8f0; color: #334155;">${rep.category}</span></td>
+            <td><span class="badge" style="background: #e2e8f0; color: #334155;">${rep.category || "Umum"}</span></td>
             <td style="max-width: 260px;">${rep.title}</td>
             <td><span class="badge" style="background: ${badgeColor}">${rep.currentStatus}</span></td>
             <td>
-              <button class="btn btn-small" onclick="openEditModal(${idx})"><i class="fa-solid fa-pen"></i> Update</button>
+              <button class="btn btn-small" onclick="openEditModal(${idx})"><i class="fa-solid fa-pen"></i> Kelola</button>
             </td>
           </tr>
         `;
@@ -251,8 +270,22 @@
       const report = allReports[index];
       document.getElementById("modalReportId").innerText = report.id;
       document.getElementById("modalRowIndex").value = report.rowIndex;
+      document.getElementById("modalEmail").innerText = report.email;
+      document.getElementById("modalLocation").innerText = report.location || "-";
       document.getElementById("modalStatusSelect").value = report.currentStatus;
       document.getElementById("modalNoteInput").value = report.note || "";
+      
+      // Menampilkan Tombol Bukti Pendukung
+      const proofBox = document.getElementById("modalProofContainer");
+      if (report.proof && report.proof.trim() !== "") {
+        proofBox.innerHTML = `
+          <a href="${report.proof}" target="_blank" class="btn btn-small btn-secondary" style="display: inline-flex; width: auto; gap: 6px; margin-top: 4px;">
+            <i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--primary);"></i> Buka File Bukti
+          </a>
+        `;
+      } else {
+        proofBox.innerHTML = `<span style="color: var(--text-muted); font-style: italic;">Tidak ada file dilampirkan</span>`;
+      }
       
       document.getElementById("editModal").classList.remove("hidden");
     }
